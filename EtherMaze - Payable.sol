@@ -45,7 +45,7 @@ contract EtherMaze is owned {
     {
         if(!treasureIsFound)
             revert();
-            
+        
         mazeSize = size;
         mazeDescrBin = descr;
         initPos.x = initX;
@@ -53,6 +53,11 @@ contract EtherMaze is owned {
         treasurePos.x = treasureX;
         treasurePos.y = treasureY;
         moveCost = _moveCostInFinney * 1000000000000000;
+        
+        if (!IsTreasureAccessible())
+            revert();
+            
+        treasureIsFound = false;
     }
 
     modifier sentEnoughCashForMove()
@@ -98,7 +103,7 @@ contract EtherMaze is owned {
         return false;
     }
     
-    function IsTreasureAccessible() returns (bool isAccessible)
+    function IsTreasureAccessible() internal returns (bool isAccessible)
     {
         visitedPositions.length = 0;
         return IsTreasureAccessibleFrom(initPos);
@@ -152,12 +157,9 @@ contract EtherMaze is owned {
     
     function GetTreasure() internal
     {
-        if (!treasureIsFound)
-        {
-            treasureIsFound = true;
-            winner = msg.sender;
-            msg.sender.transfer(this.balance);
-        }
+        treasureIsFound = true;
+        winner = msg.sender;
+        msg.sender.transfer(this.balance);
     }
     
     function Move(Direction direction) internal returns (bool hasMoved)
